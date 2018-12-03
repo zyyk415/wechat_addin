@@ -13,7 +13,7 @@ WechatGroupname = "AI"
 No = 0
 
 pathFloder = os.path.dirname(__file__)
-DllFilePath = os.path.join(pathFloder,"crptyOK.dll")
+DllFilePath = os.path.join(pathFloder,"crpty.dll")
 
 #@itchat.msg_register([PICTURE,TEXT],isGroupChat=True)
 @itchat.msg_register([PICTURE,TEXT],isGroupChat=True)
