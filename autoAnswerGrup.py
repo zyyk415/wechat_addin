@@ -35,7 +35,7 @@ def simple_reply(msg):
                #确定需要发送的群
                rooms = itchat.search_chatrooms(WechatGroupname)
                userName = rooms[0]['UserName']
-               print (userName)
+#               print (userName)
                #取出当前时间
                nowtime=time.strftime('%Y%m%d',time.localtime(time.time()))
                nowtime_ymdhms = time.strftime('%Y-%m-%d %H:%M:%S',time.localtime(time.time()))
@@ -47,10 +47,11 @@ def simple_reply(msg):
                so = ctypes.cdll.LoadLibrary   
                lib = so(DllFilePath)
                lib.get_lock_code(strin,strkey)
-               print(strkey) #最终的key
-               print("\n")
+#               print(strkey) #最终的key
+#               print("\n")
                #发送微信到专门的群上
                itchat.send('@%s %s '%(msg['ActualNickName'],strkey.decode()),toUserName=userName)
+               print('@%s %s '%(msg['ActualNickName'],strkey.decode()))
                f = open(pathFloder+"\\"+"log.txt","a+")
                f.write(str(No)+" "+msg['ActualNickName'] +" "+ nowtime_ymdhms +" "+ devid + "\n")
                f.close()
