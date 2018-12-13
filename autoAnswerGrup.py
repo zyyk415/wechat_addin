@@ -16,15 +16,18 @@ No = 0
 pathFloder = os.path.dirname(__file__)
 DllFilePath = os.path.join(pathFloder,"crpty.dll")
 
+non_bmp_map = dict.fromkeys(range(0x10000, sys.maxunicode + 1), 0xfffd)
+
 #@itchat.msg_register([TEXT],isGroupChat=True)
 @itchat.msg_register([TEXT],isGroupChat=True)
 def simple_reply(msg):
+    global non_bmp_map
     #匹配需要回复的关键字
     #【求设备密码12345678】
     try:
-        print ("消息发送群 " + msg['User']['NickName'])
-        print ("消息发送人  "+ msg['ActualNickName'])
-        print (msg['Content']+"\n")
+        print ("消息发送群 " + msg['User']['NickName'].translate(non_bmp_map))
+        print ("消息发送人  "+ msg['ActualNickName'].translate(non_bmp_map))
+        print (msg['Content'].translate(non_bmp_map)+"\n")
         if msg['Content'][0:5] == "求设备密码":
            #取出设备号
            devid = re.sub("\D", "", msg['Content'])
@@ -51,7 +54,7 @@ def simple_reply(msg):
 #               print("\n")
                #发送微信到专门的群上
                itchat.send('@%s %s '%(msg['ActualNickName'],strkey.decode()),toUserName=userName)
-               print('@%s %s '%(msg['ActualNickName'],strkey.decode()))
+               print('@%s %s '%(msg['ActualNickName'].translate(non_bmp_map),strkey.decode()))
                f = open(pathFloder+"\\"+"log.txt","a+")
                f.write(str(No)+" "+msg['ActualNickName'] +" "+ nowtime_ymdhms +" "+ devid + "\n")
                f.close()
