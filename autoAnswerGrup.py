@@ -25,9 +25,9 @@ def simple_reply(msg):
     #匹配需要回复的关键字
     #【求设备密码12345678】
     try:
-        print ("消息发送群 " + msg['User']['NickName'].translate(non_bmp_map))
-        print ("消息发送人  "+ msg['ActualNickName'].translate(non_bmp_map))
-        print (msg['Content'].translate(non_bmp_map)+"\n")
+        print (msg['User']['NickName'].translate(non_bmp_map)+" ",end="")
+        print (msg['ActualNickName'].translate(non_bmp_map))
+        print (msg['Content'].translate(non_bmp_map))
         if msg['Content'][0:5] == "求设备密码":
            #取出设备号
            devid = re.sub("\D", "", msg['Content'])
