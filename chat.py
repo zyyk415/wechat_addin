@@ -21,15 +21,28 @@ DllFilePath = os.path.join(pathFloder,"crpty.dll")
 non_bmp_map = dict.fromkeys(range(0x10000, sys.maxunicode + 1), 0xfffd)
 
 #@itchat.msg_register([TEXT],isFriendChat=True,isGroupChat=True)
-@itchat.msg_register([PICTURE,TEXT],isGroupChat=True)
+@itchat.msg_register([TEXT],isGroupChat=True)
 def simple_reply(msg):
     global non_bmp_map
     #匹配需要回复的关键字
     #【求设备密码12345678】
     try:
+        #取出当前时间
+        nowtime=time.strftime('%Y%m%d',time.localtime(time.time()))
+        nowtime_ymdhms = time.strftime('%Y-%m-%d %H:%M:%S',time.localtime(time.time()))
+        nowtime_b = nowtime.encode("utf-8")
         print (msg['User']['NickName'].translate(non_bmp_map)+" ",end="")
-        print (msg['ActualNickName'].translate(non_bmp_map))
-        print (msg['Content'].translate(non_bmp_map))
+        print (msg['ActualNickName'].translate(non_bmp_map),end="")
+        print(" " + nowtime_ymdhms)
+        print (msg['Content'].translate(non_bmp_map)+"\n")
+        #将聊天记录记录到各自的文件中
+        f = open(pathFloder+"\\"+msg['User']['NickName'].translate(non_bmp_map)+".txt","a+",encoding='utf-8')
+        f.write(msg['User']['NickName'].translate(non_bmp_map))
+        f.write(msg['ActualNickName'].translate(non_bmp_map))
+        f.write(" " + nowtime_ymdhms)
+        f.write(msg['Content'].translate(non_bmp_map)+"\n")
+        f.close()
+
         if msg['Content'][0:5] == "求设备密码":
            #取出设备号
            devid = re.sub("\D", "", msg['Content'])
@@ -41,10 +54,6 @@ def simple_reply(msg):
                rooms = itchat.search_chatrooms(WechatGroupname)
                userName = rooms[0]['UserName']
 #               print (userName)
-               #取出当前时间
-               nowtime=time.strftime('%Y%m%d',time.localtime(time.time()))
-               nowtime_ymdhms = time.strftime('%Y-%m-%d %H:%M:%S',time.localtime(time.time()))
-               nowtime_b = nowtime.encode("utf-8")
                #输入输出参数
                strin = devid_b+nowtime_b
                strkey = b"000000"
@@ -55,14 +64,14 @@ def simple_reply(msg):
                #发送微信到专门的群上
                itchat.send('@%s %s '%(msg['ActualNickName'],strkey.decode()),toUserName=userName)
                print('@%s %s '%(msg['ActualNickName'].translate(non_bmp_map),strkey.decode()))
-               f = open(pathFloder+"\\"+"log.txt","a+")
+               f = open(pathFloder+"\\"+"log.txt","a+",encoding='utf-8')
                f.write(str(No)+" "+msg['ActualNickName'] +" "+ nowtime_ymdhms +" "+ devid + "\n")
                f.close()
     except Exception as e:
         logging.exception(e)
 
 #接收朋友的消息
-@itchat.msg_register([PICTURE,TEXT],isFriendChat=True)
+@itchat.msg_register([TEXT],isFriendChat=True)
 def simple_friend_reply(msg):
     global non_bmp_map
     try:
@@ -72,14 +81,38 @@ def simple_friend_reply(msg):
     except Exception as e:
         logging.exception(e)    
 
+#接收朋友的图片信息
+#@itchat.msg_register([PICTURE, RECORDING, ATTACHMENT, VIDEO])
+#def download_files(msg):
+#    try:
+#        msg.download(os.path.join(pathFloder,msg.fileName))
+#        typeSymbol = {
+#            PICTURE: 'img',
+#            VIDEO: 'vid', }.get(msg.type, 'fil')
+#        return '@%s@%s' % (typeSymbol, msg.fileName)
+#    except Exception as e:
+#        logging.exception(e)  
+#
+#接收群的图片信息
+#@itchat.msg_register([PICTURE, RECORDING, ATTACHMENT, VIDEO],isGroupChat=True)
+#def download_files_frome_group(msg):
+#    try:
+#        msg.download(os.path.join(pathFloder,msg.fileName))
+#        typeSymbol = {
+#            PICTURE: 'img',
+#            VIDEO: 'vid', }.get(msg.type, 'fil')
+#        return '@%s@%s' % (typeSymbol, msg.fileName)
+#    except Exception as e:
+#        logging.exception(e) 
+
 #@itchat.msg_register([TEXT],isFriendChat=True,isGroupChat=True)
 #定义回复函数，回复是，先输入想要回复的人或群，然后输入一个空格，再输入回复消息即可回复。
 def mes_select_reply():
     while(1):
         try:
-            time.sleep(3)
+#            time.sleep(3) 不需要停止
             replymessage=""
-            replymessage= input("输入对象 内容\n")
+            replymessage= input()
             #想要回复的对象 （群名或好友名称）
             name0 = replymessage.split()[0]
             #通过好友的昵称找到username
