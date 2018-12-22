@@ -9,6 +9,7 @@ import os
 import sys
 import logging
 import threading
+import tkinter as tk
 
 #只需要修改下面的群名就可以了
 WechatGroupname = "驾培旗舰版授权"
@@ -53,7 +54,6 @@ def simple_reply(msg):
                #确定需要发送的群
                rooms = itchat.search_chatrooms(WechatGroupname)
                userName = rooms[0]['UserName']
-#               print (userName)
                #输入输出参数
                strin = devid_b+nowtime_b
                strkey = b"000000"
@@ -104,30 +104,28 @@ def download_files_frome_group(msg):
 #@itchat.msg_register([TEXT],isFriendChat=True,isGroupChat=True)
 #定义回复函数，回复是，先输入想要回复的人或群，然后输入一个空格，再输入回复消息即可回复。
 def mes_select_reply():
-    while(1):
-        try:
-#            time.sleep(3) 不需要停止
-            replymessage=""
-            replymessage= input()
-            #想要回复的对象 （群名或好友名称）
-            name0 = replymessage.split()[0]
-            #通过好友的昵称找到username
-            userName0 = itchat.search_friends(name=name0)
-            if userName0 != []:
-                userName = userName0[0]["UserName"]
-            else: 
-                #通过群名找到username
-                rooms = itchat.search_chatrooms(name0)
-                if rooms != []:
-                    userName = rooms[0]['UserName']
-                else:
-                    continue  
-            #想要回复的内容
-            content =  replymessage.split(" ",1)[1]
-            print("@" + name0 +" "+content+"\n" )
-            itchat.send("%s"%(content),toUserName=userName)
-        except Exception as e:
-            logging.exception(e) 
+    try:
+        replymessage=""
+        replymessage= E1.get()
+        #想要回复的对象 （群名或好友名称）
+        name0 = replymessage.split()[0]
+        #通过好友的昵称找到username
+        userName0 = itchat.search_friends(name=name0)
+        if userName0 != []:
+            userName = userName0[0]["UserName"]
+        else: 
+            #通过群名找到username
+            rooms = itchat.search_chatrooms(name0)
+            if rooms != []:
+                userName = rooms[0]['UserName']
+            else:
+                 return
+        #想要回复的内容
+        content =  replymessage.split(" ",1)[1]
+        print("@" + name0 +" "+content+"\n" )
+        itchat.send("%s"%(content),toUserName=userName)
+    except Exception as e:
+        logging.exception(e) 
 #创建文件夹
 def makedir(path):
     # 去除首位空格
@@ -150,13 +148,19 @@ def makedir(path):
 def itdo():
     itchat.auto_login()#enableCmdQR=True 可以在命令行显示二维码
     itchat.run()
-    
-t = threading.Thread(target=mes_select_reply) #开启并行线程
-#t.setDaemon(True)
-t.start()
+
 t1 = threading.Thread(target=itdo) #开启并行线程
 #t.setDaemon(True)
 t1.start()
+
+#创建界面
+chatframe = tk.Tk("消息回复")
+#chatframe.geometry("500x50")
+E1 = tk.Entry(chatframe,width=65)
+E1.pack(side = tk.LEFT)
+B1 = tk.Button(chatframe,text = "发送",command = mes_select_reply)
+B1.pack(side = tk.RIGHT)
+chatframe.mainloop()
 
 
 
