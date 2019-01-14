@@ -11,9 +11,11 @@ import logging
 import threading
 import tkinter as tk
 import color
+import kefuIF
 
 #只需要修改下面的群名就可以了
-WechatGroupname = "驾培旗舰版授权"
+WechatGroupname = "驾培旗舰版授权码获取"
+WechatGroupname4G = "维尔前端问题自动回复"
 No = 0
 
 #取得当前文件的目录
@@ -51,29 +53,40 @@ def simple_reply(msg):
         f.write(msg['Content'].translate(non_bmp_map)+"\n"+"\n")
         f.close()
 
-        if msg['Content'][0:5] == "求设备密码":
-           #取出设备号
-           devid = re.sub("\D", "", msg['Content'])
-           if len(devid) == 8:
-               global No
-               No = No + 1
-               devid_b = devid.encode("utf-8")  
-               #确定需要发送的群
-               rooms = itchat.search_chatrooms(WechatGroupname)
-               userName = rooms[0]['UserName']
-               #输入输出参数
-               strin = devid_b+nowtime_b
-               strkey = b"000000"
-               #调用C库
-               so = ctypes.cdll.LoadLibrary   
-               lib = so(DllFilePath)
-               lib.get_lock_code(strin,strkey)
-               #发送微信到专门的群上
-               itchat.send('@%s %s '%(msg['ActualNickName'],strkey.decode()),toUserName=userName)
-               print('@%s %s '%(msg['ActualNickName'].translate(non_bmp_map),strkey.decode()))
-               f = open(pathFloder+"\\"+"log.txt","a+",encoding='utf-8')
-               f.write(str(No)+" "+msg['ActualNickName'] +" "+ nowtime_ymdhms +" "+ devid + "\n")
-               f.close()
+        #以下是自动回复客服机器人的逻辑（驾培计时设备中一些常见的问题）
+        if msg['User']['NickName'] == WechatGroupname4G:
+            answer = kefuIF.answer(msg['Content'])
+            #发送微信到专门的群上
+            rooms = itchat.search_chatrooms(WechatGroupname4G)
+            userName = rooms[0]['UserName']
+            itchat.send('@%s %s '%(msg['ActualNickName'],answer),toUserName=userName)
+            return 
+        
+        #以下是设备密码群的逻辑
+        if msg['User']['NickName'] == WechatGroupname:    
+            if msg['Content'][0:5] == "求设备密码":
+               #取出设备号
+               devid = re.sub("\D", "", msg['Content'])
+               if len(devid) == 8:
+                   global No
+                   No = No + 1
+                   devid_b = devid.encode("utf-8")  
+                   #确定需要发送的群
+                   rooms = itchat.search_chatrooms(WechatGroupname)
+                   userName = rooms[0]['UserName']
+                   #输入输出参数
+                   strin = devid_b+nowtime_b
+                   strkey = b"000000"
+                   #调用C库
+                   so = ctypes.cdll.LoadLibrary   
+                   lib = so(DllFilePath)
+                   lib.get_lock_code(strin,strkey)
+                   #发送微信到专门的群上
+                   itchat.send('@%s %s '%(msg['ActualNickName'],strkey.decode()),toUserName=userName)
+                   print('@%s %s '%(msg['ActualNickName'].translate(non_bmp_map),strkey.decode()))
+                   f = open(pathFloder+"\\"+"log.txt","a+",encoding='utf-8')
+                   f.write(str(No)+" "+msg['ActualNickName'] +" "+ nowtime_ymdhms +" "+ devid + "\n")
+                   f.close()
     except Exception as e:
         logging.exception(e)
 
