@@ -54,7 +54,7 @@ def simple_reply(msg):
         f.close()
 
         #以下是自动回复客服机器人的逻辑（驾培计时设备中一些常见的问题）
-        if msg['User']['NickName'] == WechatGroupname4G:
+        if msg['User']['NickName'] == WechatGroupname4G and msg["isAt"]:
             answer = kefuIF.answer(msg['Content'])
             #发送微信到专门的群上
             rooms = itchat.search_chatrooms(WechatGroupname4G)
@@ -147,6 +147,32 @@ def mes_select_reply(event):
         itchat.send("%s"%(content),toUserName=userName)
     except Exception as e:
         logging.exception(e) 
+
+#发文件
+def mes_file_send(event):
+    try:
+        replymessage=""
+        replymessage= E2.get()
+        E2.delete(0, tk.END)  # 删除所有值
+        #想要回复的对象 （群名或好友名称）
+        name0 = replymessage.split()[0]
+        #通过好友的昵称找到username
+        userName0 = itchat.search_friends(name=name0)
+        if userName0 != []:
+            userName = userName0[0]["UserName"]
+        else: 
+            #通过群名找到username
+            rooms = itchat.search_chatrooms(name0)
+            if rooms != []:
+                userName = rooms[0]['UserName']
+            else:
+                 return
+        #想要回复的内容
+        content =  replymessage.split(" ",1)[1]
+        print("@" + name0 +" "+content+"\n" )
+        itchat.send_file(content,toUserName=userName)
+    except Exception as e:
+        logging.exception(e) 
 #创建文件夹
 def makedir(path):
     # 去除首位空格
@@ -186,8 +212,12 @@ E1 = tk.Entry(chatframe,width=65)
 #给输入框绑定按键监听事件<Key>为监听任何按键 <Key-x>监听其它键盘，如大写的A<Key-A>、回车<Key-Return>
 E1.bind('<Key-Return>', mes_select_reply)
 E1.pack(side = tk.LEFT)
-B1 = tk.Button(chatframe,text = "发送",command = mes_select_reply)
-B1.pack(side = tk.RIGHT)
+
+E2 = tk.Entry(chatframe,width=65)
+#给输入框绑定按键监听事件<Key>为监听任何按键 <Key-x>监听其它键盘，如大写的A<Key-A>、回车<Key-Return>
+E2.bind('<Key-Return>', mes_file_send)
+E2.pack(side = tk.LEFT)
+
 chatframe.mainloop()
 
 
