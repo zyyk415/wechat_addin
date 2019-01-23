@@ -107,6 +107,7 @@ def download_files(msg):
     try:
         path = os.path.join(pathFloder,msg['User']['NickName'].translate(non_bmp_map))
         makedir(path)
+        print(msg.fileName + "\n")
         msg.download(os.path.join(path,msg.fileName))
     except Exception as e:
         logging.exception(e)  
@@ -117,6 +118,7 @@ def download_files_frome_group(msg):
     try:
         path = os.path.join(pathFloder,msg['User']['NickName'].translate(non_bmp_map))
         makedir(path)
+        print(msg.fileName + "\n")
         msg.download(os.path.join(path,msg.fileName))
     except Exception as e:
         logging.exception(e) 
