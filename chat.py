@@ -11,7 +11,7 @@ import logging
 import threading
 import tkinter as tk
 import color
-import kefuIF
+import kefu.kefuIF
 
 #只需要修改下面的群名就可以了
 WechatGroupname = "驾培旗舰版授权码获取"
@@ -21,6 +21,7 @@ No = 0
 #取得当前文件的目录
 pathFloder = os.path.dirname(__file__)
 DllFilePath = os.path.join(pathFloder,"crpty.dll")
+logPath = os.path.join(pathFloder,"wechatLOG")
 
 non_bmp_map = dict.fromkeys(range(0x10000, sys.maxunicode + 1), 0xfffd)
 
@@ -46,7 +47,7 @@ def simple_reply(msg):
             print(" " + nowtime_ymdhms)
             print (msg['Content'].translate(non_bmp_map)+"\n")
         #将聊天记录记录到各自的文件中
-        f = open(pathFloder+"\\"+msg['User']['NickName'].translate(non_bmp_map)+".txt","a+",encoding='utf-8')
+        f = open(logPath+"\\"+msg['User']['NickName'].translate(non_bmp_map)+".txt","a+",encoding='utf-8')
         f.write(msg['ActualNickName'].translate(non_bmp_map)+" ")
         f.write(" " + nowtime_ymdhms+" ")
         f.write(msg['User']['NickName'].translate(non_bmp_map)+"\n")
@@ -54,10 +55,13 @@ def simple_reply(msg):
         f.close()
 
         #以下是自动回复客服机器人的逻辑（驾培计时设备中一些常见的问题）
-        if msg['User']['NickName'] == WechatGroupname4G and msg["isAt"]:
-            answer = kefuIF.answer(msg['Content'])
+        if msg['User']['NickName'] == WechatGroupname and msg["isAt"]:
+            if msg['Content'] == '':
+                answer = "您好，欢迎使用维尔自动回复系统。您可以直接输入【求设备密码12345678】来获取操作密码，也可以【@郑银尧 问题】来查找一些简单的问题"
+            else:
+                answer = kefu.kefuIF.answer(msg['Content'])
             #发送微信到专门的群上
-            rooms = itchat.search_chatrooms(WechatGroupname4G)
+            rooms = itchat.search_chatrooms(WechatGroupname)
             userName = rooms[0]['UserName']
             itchat.send('@%s %s '%(msg['ActualNickName'],answer),toUserName=userName)
             return 
@@ -105,7 +109,7 @@ def simple_friend_reply(msg):
 @itchat.msg_register([PICTURE, RECORDING, ATTACHMENT, VIDEO])
 def download_files(msg):
     try:
-        path = os.path.join(pathFloder,msg['User']['NickName'].translate(non_bmp_map))
+        path = os.path.join(logPath,msg['User']['NickName'].translate(non_bmp_map))
         makedir(path)
         print(msg.fileName + "\n")
         msg.download(os.path.join(path,msg.fileName))
@@ -116,7 +120,7 @@ def download_files(msg):
 @itchat.msg_register([PICTURE, RECORDING, ATTACHMENT, VIDEO],isGroupChat=True)
 def download_files_frome_group(msg):
     try:
-        path = os.path.join(pathFloder,msg['User']['NickName'].translate(non_bmp_map))
+        path = os.path.join(logPath,msg['User']['NickName'].translate(non_bmp_map))
         makedir(path)
         print(msg.fileName + "\n")
         msg.download(os.path.join(path,msg.fileName))
@@ -172,7 +176,7 @@ def mes_file_send(event):
         #想要回复的内容
         content =  replymessage.split(" ",1)[1]
         print("@" + name0 +" "+content+"\n" )
-        itchat.send_file(content,toUserName=userName)
+        print(itchat.send_file(content,toUserName=userName))
     except Exception as e:
         logging.exception(e) 
 #创建文件夹
@@ -213,12 +217,12 @@ chatframe = tk.Tk("消息回复")
 E1 = tk.Entry(chatframe,width=65)
 #给输入框绑定按键监听事件<Key>为监听任何按键 <Key-x>监听其它键盘，如大写的A<Key-A>、回车<Key-Return>
 E1.bind('<Key-Return>', mes_select_reply)
-E1.pack(side = tk.LEFT)
+E1.pack()
 
 E2 = tk.Entry(chatframe,width=65)
 #给输入框绑定按键监听事件<Key>为监听任何按键 <Key-x>监听其它键盘，如大写的A<Key-A>、回车<Key-Return>
 E2.bind('<Key-Return>', mes_file_send)
-E2.pack(side = tk.LEFT)
+E2.pack()
 
 chatframe.mainloop()
 
